@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -11,13 +12,19 @@ function ProfilePage() {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const q = query(collection(db, 'posts'), where('userId', '==', userId));
-      const querySnapshot = await getDocs(q);
-      const postsData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPosts(postsData);
+      try {
+        console.log(`Fetching posts for userId: ${userId}`);
+        const q = query(collection(db, 'posts'), where('userId', '==', userId));
+        const querySnapshot = await getDocs(q);
+        const postsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log('Fetched posts:', postsData);
+        setPosts(postsData);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
     };
 
     fetchPosts();
@@ -29,13 +36,13 @@ function ProfilePage() {
       <div className="feed">
         {posts.map(post => (
           <Post 
-              key={post.id} 
-              postId={post.id} 
-              title={post.title} 
-              content={post.content} 
-              image={post.image}
-              username={post.username} // Pass the username prop
-            />
+            key={post.id} 
+            postId={post.id} 
+            title={post.title} 
+            content={post.content} 
+            image={post.image}
+            username={post.username} // Pass the username prop
+          />
         ))}
       </div>
     </div>

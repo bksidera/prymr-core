@@ -29,7 +29,16 @@ function App() {
 
   }, []);
 
+
+
+
+
+
+
+
   // Fetch posts from Firestore
+
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -44,9 +53,20 @@ function App() {
         console.error("Error fetching posts:", error);
       }
     };
-
+  
     fetchPosts();
-  }, []); // Fetch posts when the component mounts
+  }, []);
+  
+
+
+
+
+
+
+
+
+
+
 
   // Function to handle logout
   const handleLogout = async () => {
@@ -86,6 +106,8 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/profile/:userId" element={<ProfilePage />} />
+
             <Route
               path="/"
               element={
