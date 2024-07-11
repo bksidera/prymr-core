@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Login from './Login';
@@ -13,60 +15,46 @@ import Post from './Post'; // Import the Post component
 function App() {
   const [user, setUser] = useState(null); // Add user state
   const [posts, setPosts] = useState([]); // Move posts state to App component
+  const [loading, setLoading] = useState(true); // Add loading state
 
   // Effect hook for authentication state observer
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log('User is logged in:', user);
         setUser(user);
       } else {
+        console.log('User is logged out');
         setUser(null);
       }
     });
 
     // Cleanup the subscription on component unmount
     return () => unsubscribe();
-
   }, []);
 
-
-
-
-
-
-
-
   // Fetch posts from Firestore
-
-
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        console.log('Fetching posts...');
         const q = query(collection(db, 'posts'));
         const querySnapshot = await getDocs(q);
         const postsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        console.log('Fetched posts:', postsData);
         setPosts(postsData);
       } catch (error) {
         console.error("Error fetching posts:", error);
+      } finally {
+        setLoading(false); // Set loading to false once data is fetched
       }
     };
-  
+
     fetchPosts();
-  }, []);
-  
-
-
-
-
-
-
-
-
-
-
+  }, []); // Fetch posts when the component mounts
 
   // Function to handle logout
   const handleLogout = async () => {
@@ -106,22 +94,25 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/profile/:userId" element={<ProfilePage />} />
-
             <Route
               path="/"
               element={
                 <div className="feed">
-                  {posts.map(post => (
-                    <Post
-                      key={post.id}
-                      postId={post.id}
-                      title={post.title}
-                      content={post.content}
-                      image={post.image}
-                      username={post.username} // Pass the username prop
-                    />
-                  ))}
+                  {loading ? (
+                    <p>Loading posts...</p> // Show loading message while fetching
+                  ) : posts.length > 0 ? (
+                    posts.map(post => (
+                      <Post
+                        key={post.id}
+                        postId={post.id}
+                        title={post.title}
+                        content={post.content}
+                        image={post.image}
+                      />
+                    ))
+                  ) : (
+                    <p>No posts available</p> // Show message if no posts are available
+                  )}
                 </div>
               }
             />
@@ -135,4 +126,3 @@ function App() {
 }
 
 export default App;
-
