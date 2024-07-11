@@ -82,7 +82,7 @@ function App() {
         </div>
 
         <div className="content">
-          This is the future home of Prymr's test development site.
+          This is the home of Prymr's test development site.
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
