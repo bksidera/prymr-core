@@ -6,7 +6,7 @@ import { db } from './firebase'; // Import Firestore
 import Comment from './Comment';
 import './Post.css'; // Importing the Post.css file
 
-function Post({ title, content, image, postId }) {
+function Post({ title, content, image, postId, username }) {
   const [likes, setLikes] = useState(0);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
@@ -49,9 +49,8 @@ function Post({ title, content, image, postId }) {
     <div className="post">
       <h2>{title}</h2>
       <p>{content}</p>
-      <img src={image} alt={title} className="post-image" />
-
-
+      {image && <img src={image} alt={title} className="post-image" />}
+      <p>Posted by: {username}</p> {/* Display the username */}
       <div className="like-section">
         <button onClick={handleLike} className="like-button">❤️</button>
         <span>{likes} likes</span>

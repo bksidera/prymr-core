@@ -2,37 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Login from './Login';
 import Signup from './Signup';
+import ProfilePage from './ProfilePage'; // Import ProfilePage component
+import CreatePost from './CreatePost'; // Import CreatePost component
 import './App.css';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from './firebase'; // Import the auth module
+import { onAuthStateChanged, signOut } from 'firebase/auth'; // Import necessary auth functions
+import { auth, db } from './firebase'; // Import the auth and db module
+import { collection, query, getDocs } from 'firebase/firestore'; // Import Firestore functions
 import Post from './Post'; // Import the Post component
 
 function App() {
-  // State hooks
   const [user, setUser] = useState(null); // Add user state
-  const [username, setUsername] = useState('');
-  
-  // Array of posts
-  const posts = [
-    { id: 1, title: 'First Post', content: 'This is the content of the first post.', image: '/images/board1.jpg' },
-    { id: 2, title: 'Second Post', content: 'This is the content of the second post.', image: 'images/board2.jpg' },
-    { id: 3, title: 'Third Post', content: 'This is the content of the third post.', image: 'images/board3.jpg' },
-    { id: 4, title: 'Fourth Post', content: 'This is the content of the fourth post.', image: 'images/board4.jpg' },
-    { id: 5, title: 'Fifth Post', content: 'This is the content of the fifth post.', image: 'images/board5.jpg' },
-    { id: 6, title: 'Sixth Post', content: 'This is the content of the sixth post.', image: 'images/board6.jpg' },
-    // Add more posts as needed
-  ];
+  const [posts, setPosts] = useState([]); // Move posts state to App component
 
   // Effect hook for authentication state observer
   useEffect(() => {
-    // Observer for authentication state
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        setUsername(user.displayName || user.email); // Set the username to displayName or email if displayName is not set
       } else {
         setUser(null);
-        setUsername(''); // Reset the username when the user logs out
       }
     });
 
@@ -40,6 +28,25 @@ function App() {
     return () => unsubscribe();
 
   }, []);
+
+  // Fetch posts from Firestore
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const q = query(collection(db, 'posts'));
+        const querySnapshot = await getDocs(q);
+        const postsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPosts(postsData);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, []); // Fetch posts when the component mounts
 
   // Function to handle logout
   const handleLogout = async () => {
@@ -50,20 +57,20 @@ function App() {
     }
   };
 
-
   return (
     <Router>
       <div className="App">
         <div className="header">
-        Welcome to Prymr!
+          Welcome to Prymr!
         </div>
-
 
         <div className="nav-links">
           <Link to="/">Home</Link>
           {user ? (
             <>
               <span className="user-status">Welcome, {user.displayName || user.email}</span>
+              <Link to={`/profile/${user.uid}`}>My Profile</Link> {/* Link to the user's profile */}
+              <Link to="/create-post">Create Post</Link> {/* Link to the create post page */}
               <button onClick={handleLogout}>Logout</button>
             </>
           ) : (
@@ -79,13 +86,25 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/" element={
-              <div className="feed">
-                {posts.map(post => (
-                  <Post key={post.id} postId={post.id} title={post.title} content={post.content} image={post.image} />
-                ))}
-              </div>
-            } />
+            <Route
+              path="/"
+              element={
+                <div className="feed">
+                  {posts.map(post => (
+                    <Post
+                      key={post.id}
+                      postId={post.id}
+                      title={post.title}
+                      content={post.content}
+                      image={post.image}
+                      username={post.username} // Pass the username prop
+                    />
+                  ))}
+                </div>
+              }
+            />
+            <Route path="/profile/:userId" element={<ProfilePage />} /> {/* Add route for ProfilePage */}
+            <Route path="/create-post" element={<CreatePost />} /> {/* Add route for CreatePost */}
           </Routes>
         </div>
       </div>
@@ -94,3 +113,4 @@ function App() {
 }
 
 export default App;
+
