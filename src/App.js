@@ -6,6 +6,7 @@ import Login from './Login';
 import Signup from './Signup';
 import ProfilePage from './ProfilePage'; // Import ProfilePage component
 import CreatePost from './CreatePost'; // Import CreatePost component
+import CreatorCollective from './CreatorCollective';
 import './App.css';
 import { onAuthStateChanged, signOut } from 'firebase/auth'; // Import necessary auth functions
 import { auth, db } from './firebase'; // Import the auth and db module
@@ -37,19 +38,27 @@ function App() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+
         console.log('Fetching posts...');
         const q = query(collection(db, 'posts'));
         const querySnapshot = await getDocs(q);
-        const postsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        console.log('QuerySnapshot size:', querySnapshot.size);
+        const postsData = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          console.log('Document data:', data);
+          return {
+            id: doc.id,
+            ...data,
+          };
+        });
         console.log('Fetched posts:', postsData);
         setPosts(postsData);
+        console.log('Posts state after update:', postsData);
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
-        setLoading(false); // Set loading to false once data is fetched
+        setLoading(false);
+        console.log('Loading state set to false');
       }
     };
 
@@ -90,7 +99,10 @@ function App() {
         </div>
 
         <div className="content">
-          This is the home of Prymr's test development site.
+          This is the home of Prymr's test development site. Check out more creators here.
+
+          <Link to="/creators">Creator Collective</Link>
+
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -108,6 +120,7 @@ function App() {
                         title={post.title}
                         content={post.content}
                         image={post.image}
+                        username={post.username} // Pass the username prop
                       />
                     ))
                   ) : (
@@ -118,6 +131,8 @@ function App() {
             />
             <Route path="/profile/:userId" element={<ProfilePage />} /> {/* Add route for ProfilePage */}
             <Route path="/create-post" element={<CreatePost />} /> {/* Add route for CreatePost */}
+            <Route path="/creators" element={<CreatorCollective />} /> {/* Add route for CreatorCollective */}
+
           </Routes>
         </div>
       </div>
